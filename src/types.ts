@@ -1967,6 +1967,12 @@ export interface KaboomCtx {
 	 * Go to a scene, passing all rest args to scene callback.
 	 */
 	go(id: SceneName, ...args: any): void,
+
+	/**
+	 * Go to a scene, passing all rest args to scene callback.
+	 */
+	goToScene(id: SceneName, ...args: any): Promise<void>,
+
 	/**
 	 * Construct a level based on symbols.
 	 *

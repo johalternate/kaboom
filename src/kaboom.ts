@@ -4826,6 +4826,46 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		game.scenes[id] = def
 	}
 
+	function goToScene(name: SceneName, ...args) {
+		return new Promise<void>((resolve, reject) => {
+			if (!game.scenes[name]) {
+				reject(new Error(`Scene not found: ${name}`))
+				return
+			}
+
+			game.events.onOnce("frameEnd", () => {
+				game.events.trigger("sceneLeave", name)
+				app.events.clear()
+				game.events.clear()
+				game.objEvents.clear();
+
+				[...game.root.children].forEach((obj) => {
+					if (
+						!obj.stay ||
+            (obj.scenesToStay && !obj.scenesToStay.includes(name))
+					) {
+						game.root.remove(obj)
+					}
+				})
+
+				game.root.clearEvents()
+				initEvents()
+
+        // cam
+				game.cam = {
+					pos: null,
+					scale: vec2(1),
+					angle: 0,
+					shake: 0,
+					transform: new Mat4(),
+				}
+
+				game.scenes[name](...args)
+				resolve() // Resolve the promise once everything is done
+			})
+		})
+	}
+
 	function go(name: SceneName, ...args) {
 
 		if (!game.scenes[name]) {
@@ -6663,6 +6703,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// scene
 		scene,
 		go,
+		goToScene,
 		onSceneLeave,
 		// level
 		addLevel,
